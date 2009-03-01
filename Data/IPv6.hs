@@ -8,7 +8,6 @@ import Data.ByteString.Lazy as B
 import Data.Binary
 import Data.Binary.Put
 import Data.Binary.Get
-import Text.PrettyPrint
 import Data.Bits
 
 gW8 = getWord8 >>= return . fromIntegral
