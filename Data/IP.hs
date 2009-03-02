@@ -1,4 +1,4 @@
-{-# LANGUAGE DisambiguateRecordFields, FlexibleInstances #-}
+{-# LANGUAGE DisambiguateRecordFields, FlexibleInstances, MultiParamTypeClasses #-}
 {- |The Data.IP library exports IPv4 and IPv6 address and header structures.
    There is currently no support for options fields of the IP header.
  -}
@@ -9,24 +9,26 @@ module Data.IP
 	, module Data.IPv6
 	) where
 
+import Control.Monad (sequence)
 import qualified Data.ByteString.Lazy as B
 import Data.Binary
 import Data.Binary.Put
 import Data.Binary.Get
+import Data.CSum
 import Data.List
-import Text.PrettyPrint
 import Data.IPv6
+import Data.Header
 import Data.Bits
-import Control.Monad (sequence)
+import Text.PrettyPrint
 import Text.PrettyPrint.HughesPJClass
 
-data IPv4 = IPv4 B.ByteString deriving (Eq, Ord, Show)
+data IPv4 = IPv4 B.ByteString deriving (Eq, Ord, Show, Read)
 
 instance Binary IPv4 where
 	put (IPv4 b) = putLazyByteString b
 	get = getLazyByteString 4 >>= return . IPv4
 
-data IPv4Flag = DF | MF | Res deriving (Eq, Ord, Show)
+data IPv4Flag = DF | MF | Res deriving (Eq, Ord, Show, Read)
 
 instance Enum [IPv4Flag] where
 	fromEnum xs = foldl' (.|.) 0 $ map fromEnum1 xs
@@ -46,7 +48,7 @@ data IPv4Header =
 		, fragmentOffset	:: Int
 		, ttl			:: Int
 		, protocol		:: Int
-		, checksum		:: Word16
+		, checksum		:: CSum
 		, source		:: IPv4
 		, destination		:: IPv4
 	} deriving (Eq, Ord, Show)
@@ -65,7 +67,7 @@ instance Binary IPv4Header where
 	pW16 offFlags
 	pW8 ttl
 	pW8 prot
-	putWord16be csum
+	put csum
 	put src
 	put dst
 
@@ -81,7 +83,7 @@ instance Binary IPv4Header where
 	    flags = toEnum $ offFlags `shiftR` 13
 	ttl <- gW8
 	prot <- gW8
-	csum <- getWord16be
+	csum <- get
 	src <- get
 	dst <- get
 	return $ IPv4Hdr ihl ver tos len id flags off ttl prot csum src dst
@@ -99,13 +101,8 @@ instance L3Header IPv4Header IPv4 where
 	dst = destination
 
 instance L3Address IPv4 IPv4Header where
-	localBroadcast (IPv4 a) = IPv4 $ a .|. 0xFF000000
-	globalBroadcast = IPv4 0xFFFFFFFF
+	localBroadcast (IPv4 a) = IPv4 $ B.concat [B.pack [0xFF], B.drop 1 a]
+	globalBroadcast = IPv4 $ B.replicate 4 0xFF
 
 instance Pretty IPv4 where
-	pPrint i = cat . intersperse (char '.' <+>) . map int $ [a,b,c,d]
-	  where
-	  a = fromIntegral i :: Word16
-	  b = fromIntegral $ i `shiftR` 8
-	  c = fromIntegral $ i `shiftR` 16
-	  d = fromIntegral $ i `shiftR` 24
+	pPrint (IPv4 i) = cat . intersperse (char '.') . map (int . fromIntegral) $ (B.unpack i)
