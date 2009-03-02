@@ -35,9 +35,3 @@ instance Binary UDPHeader where
 		l <- getWord16be >>= return . fromIntegral
 		c <- get
 		return $ UDPHdr s d l c
-
-instance Header UDPHeader UDPPort where
-	zeroChecksum x = x { checksum = 0 }
-	getChecksum = checksum
-	src = srcPort
-	dst = dstPort
