@@ -1,8 +1,10 @@
 {-# LANGUAGE DisambiguateRecordFields, FlexibleInstances #-}
-
+{- |The Data.IP library exports IPv4 and IPv6 address and header structures.
+   There is currently no support for options fields of the IP header.
+ -}
 module Data.IP
 	( IPv4 (..)
-	, computeChecksum
+	, IPv4Header (..)
 	, fillChecksum
 	, module Data.IPv6
 	) where
@@ -16,6 +18,7 @@ import Text.PrettyPrint
 import Data.IPv6
 import Data.Bits
 import Control.Monad (sequence)
+import Text.PrettyPrint.HughesPJClass
 
 data IPv4 = IPv4 B.ByteString deriving (Eq, Ord, Show)
 
@@ -89,14 +92,20 @@ pW8 = putWord8 . fromIntegral
 pW16 = putWord16be . fromIntegral
 pW32 = putWord32be . fromIntegral
 
-computeChecksum :: IPv4Header -> Word16
-computeChecksum hdr = csum16 (encode hdr)
+instance L3Header IPv4Header IPv4 where
+	getChecksum = checksum
+	setChecksum h c = h { checksum = c }
+	src = source
+	dst = destination
 
-csum16 :: B.ByteString -> Word16
-csum16 b = foldl' ( (+) . complement) 0 words
-  where
-  words :: [Word16]
-  words = runGet (sequence $ replicate (hdrLength $ decode b) getWord16be) b
+instance L3Address IPv4 IPv4Header where
+	localBroadcast (IPv4 a) = IPv4 $ a .|. 0xFF000000
+	globalBroadcast = IPv4 0xFFFFFFFF
 
-fillChecksum :: IPv4Header -> IPv4Header
-fillChecksum a = a { checksum = computeChecksum a }
+instance Pretty IPv4 where
+	pPrint i = cat . intersperse (char '.' <+>) . map int $ [a,b,c,d]
+	  where
+	  a = fromIntegral i :: Word16
+	  b = fromIntegral $ i `shiftR` 8
+	  c = fromIntegral $ i `shiftR` 16
+	  d = fromIntegral $ i `shiftR` 24
