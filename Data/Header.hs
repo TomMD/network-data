@@ -9,7 +9,7 @@ import qualified Data.ByteString.Lazy as B
 import Data.CSum as C
 
 -- |A class of network headers that assumes a checksum is present.
-class (Binary h, L3Address a) => L3Header h a | h -> a where
+class (Binary h) => L3Header h a | h -> a, a -> h where
 	-- |Returns the checksum from the header
 	getChecksum :: h -> CSum
 
@@ -38,6 +38,6 @@ class (Binary h, L3Address a) => L3Header h a | h -> a where
 	valid h = computeChecksum h == getChecksum h
 
 -- |A class of network addresses that assumes there is a 'broadcast' concept.
-class (Binary a, L3Header h) => L3Address a h | a -> h where
+class (Binary a) => L3Address a h | a -> h, h -> a where
 	localBroadcast :: a -> a
 	globalBroadcast :: a

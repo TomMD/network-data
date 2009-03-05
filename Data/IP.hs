@@ -1,11 +1,15 @@
 {-# LANGUAGE DisambiguateRecordFields, FlexibleInstances, MultiParamTypeClasses #-}
 {- |The Data.IP library exports IPv4 and IPv6 address and header structures.
+
+   Patches to add more parsing and pretty printing are welcome.
+
+   FIXME:
    There is currently no support for options fields of the IP header.
  -}
 module Data.IP
 	( IPv4 (..)
 	, IPv4Header (..)
-	, fillChecksum
+	, dummyIPv4Header
 	, module Data.IPv6
 	) where
 
@@ -21,13 +25,18 @@ import Data.Header
 import Data.Bits
 import Text.PrettyPrint
 import Text.PrettyPrint.HughesPJClass
+import qualified Text.ParserCombinators.Parsec as P
+import Text.ParserCombinators.Parsec.Prim
 
+-- |For IPv4 addresses.  The internal representation is a bytestring so
+-- use the pretty print 'ipv4' function as needed (instead of 'show').
 data IPv4 = IPv4 B.ByteString deriving (Eq, Ord, Show, Read)
 
 instance Binary IPv4 where
 	put (IPv4 b) = putLazyByteString b
 	get = getLazyByteString 4 >>= return . IPv4
 
+-- |Don't fragment, more fragment and reserved flags
 data IPv4Flag = DF | MF | Res deriving (Eq, Ord, Show, Read)
 
 instance Enum [IPv4Flag] where
@@ -38,6 +47,10 @@ fromEnum1 DF   = 4
 fromEnum1 MF   = 2
 fromEnum1 Res  = 1
 
+-- |This IPv4 header structure lacks support for options.  Ints are used
+-- for most integral data types and the binary instance hands the bit packing.
+--
+-- No warning is provided if a field is overflowed!
 data IPv4Header =
 	IPv4Hdr { hdrLength		:: Int
 		, version		:: Int
@@ -53,6 +66,7 @@ data IPv4Header =
 		, destination		:: IPv4
 	} deriving (Eq, Ord, Show)
 
+-- |A dummy header with zeroed fields except version, header length and TTL (255).
 dummyIPv4Header = IPv4Hdr 5 4 0 0 0 [] 0 255 0 0 ipv4zero ipv4zero
 
 ipv4zero = IPv4 (B.pack [0,0,0,0])
@@ -94,6 +108,7 @@ pW8 = putWord8 . fromIntegral
 pW16 = putWord16be . fromIntegral
 pW32 = putWord32be . fromIntegral
 
+-- L3Header and L3Address instances (see Data.Header)
 instance L3Header IPv4Header IPv4 where
 	getChecksum = checksum
 	setChecksum h c = h { checksum = c }
@@ -104,5 +119,23 @@ instance L3Address IPv4 IPv4Header where
 	localBroadcast (IPv4 a) = IPv4 $ B.concat [B.pack [0xFF], B.drop 1 a]
 	globalBroadcast = IPv4 $ B.replicate 4 0xFF
 
+-- Pretty Printing and parsing instances
 instance Pretty IPv4 where
 	pPrint (IPv4 i) = cat . intersperse (char '.') . map (int . fromIntegral) $ (B.unpack i)
+
+ipv4 = do
+	a <- octet
+	P.char '.'
+	b <- octet
+	P.char '.'
+	c <- octet
+	P.char '.'
+	d <- octet
+	return $ IPv4 $ B.pack [a, b, c, d]
+	<?>
+	"Expected IPv4 Address"
+
+octet = do
+	d <- P.many1 P.digit
+	let s = toEnum $ read d
+	return s
