@@ -9,8 +9,10 @@
 module Data.IP
 	( IPv4 (..)
 	, IPv4Header (..)
+	, IPv4Flag (..)
 	, dummyIPv4Header
 	, module Data.IPv6
+	, ipv4
 	) where
 
 import Control.Monad (sequence)
@@ -109,11 +111,17 @@ pW16 = putWord16be . fromIntegral
 pW32 = putWord32be . fromIntegral
 
 -- L3Header and L3Address instances (see Data.Header)
-instance L3Header IPv4Header IPv4 where
+instance L3Header IPv4Header IPv4 CSum where
 	getChecksum = checksum
 	setChecksum h c = h { checksum = c }
 	src = source
 	dst = destination
+	pseudoHeader h = runPut (do
+		put (src h)
+		put (dst h)
+		putWord8 0
+		pw8 (protocol h)
+		pw16 (payloadLength h))
 
 instance L3Address IPv4 IPv4Header where
 	localBroadcast (IPv4 a) = IPv4 $ B.concat [B.pack [0xFF], B.drop 1 a]
