@@ -34,6 +34,10 @@ class (Binary h) => L3Header h a c | h -> a, a -> h, h -> c where
 	fillChecksum :: h -> h
 	fillChecksum h = setChecksum h (computeChecksum h)
 
+	-- |Used by various layer 4 protocols (UDP, TCP),
+	-- a pseudo header is needed to compute the checksum
+	pseudoHeader :: h -> B.ByteString
+
 	-- |Returns True iff the checksum is valid
 	valid :: h -> Bool
 	valid h = zeroCSum == getChecksum h || computeChecksum h == getChecksum h
@@ -42,3 +46,8 @@ class (Binary h) => L3Header h a c | h -> a, a -> h, h -> c where
 class (Binary a) => L3Address a h | a -> h, h -> a where
 	localBroadcast :: a -> a
 	globalBroadcast :: a
+
+class (Binary a) => L4Header h p where
+	fixChecksum :: L3Header => h -> l3 -> h
+	srcPort	:: h -> p
+	dstPort :: h -> p
