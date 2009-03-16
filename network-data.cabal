@@ -9,7 +9,7 @@ description:	This library includes definiations for common headers such as IPv4,
 		Data type/functions for full packets, better typeclass setup, and a more agreeable interface
 		with a berkeley sockets like API should be coming soon.  Also, test cases - this code is
 		untested as of yet.
-category:	Data, Networking
+category:	Data, Network
 stability:	stable
 build-type:	Simple
 cabal-version:	>= 1.2
