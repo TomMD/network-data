@@ -2,6 +2,7 @@
 module Data.CSum
 	( csum16
 	, CSum
+	, zeroCSum
 	) where
 
 import qualified Data.ByteString.Lazy as B
@@ -24,3 +25,5 @@ csum16 b = CSum $ foldl' ( (+) . complement) 0 words
 instance Binary CSum where
 	put (CSum w) = putWord16be w
 	get = getWord16be >>= return . CSum
+
+zeroCSum = CSum 0
