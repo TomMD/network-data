@@ -120,8 +120,9 @@ instance L3Header IPv4Header IPv4 CSum where
 		put (src h)
 		put (dst h)
 		putWord8 0
-		pw8 (protocol h)
-		pw16 (payloadLength h))
+		pW8 $ fromIntegral (protocol h)
+		pW16 (payloadLength h))
+	computeChecksum h = csum16 (encode (zeroChecksum h))
 
 instance L3Address IPv4 IPv4Header where
 	localBroadcast (IPv4 a) = IPv4 $ B.concat [B.pack [0xFF], B.drop 1 a]
