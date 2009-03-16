@@ -4,8 +4,11 @@ license:	BSD3
 license-file:	LICENSE
 author:		Thomas DuBuisson <thomas.dubuisson@gmail.com>
 maintainer:	Thomas DuBuisson
-description:	Library for network data structures (ex: headers and helper functions)
-synopsis:	This library includes definiations for common headers such as IPv4, IPv6, UDP, TCP, etc.  Patches welcome.
+description:	Library for network data structures (ex: ip/udp/tcp headers and helper functions)
+synopsis:	This library includes definiations for common headers such as IPv4, IPv6, UDP, TCP, etc.
+		Data type/functions for full packets, better typeclass setup, and a more agreeable interface
+		with a berkeley sockets like API should be coming soon.  Also, test cases - this code is
+		untested as of yet.
 category:	Data, Networking
 stability:	stable
 build-type:	Simple
@@ -22,5 +25,5 @@ Library
   else
     Build-Depends: base >= 3, bytestring >= 0.9 && < 1.0, binary >= 0.4.0 && <0.5.0, prettyclass, pretty, parsec
   hs-source-dirs:
-  exposed-modules: Data.IP
+  exposed-modules: Data.IP, Data.IPv6, Data.Header, Data.TCP, Data.UDP, Data.CSum
   ghc-options: 
