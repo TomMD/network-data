@@ -132,6 +132,7 @@ instance L3Address IPv4 IPv4Header where
 instance Pretty IPv4 where
 	pPrint (IPv4 i) = cat . intersperse (char '.') . map (int . fromIntegral) $ (B.unpack i)
 
+ipv4 :: GenParser Char st IPv4
 ipv4 = do
 	a <- octet
 	P.char '.'
