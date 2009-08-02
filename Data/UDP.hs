@@ -1,6 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving, MultiParamTypeClasses #-}
 module Data.UDP
-	( UDPPort
+	( UDPPort(..)
 	, UDPHeader (..)
 	) where
 
