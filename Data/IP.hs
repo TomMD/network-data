@@ -1,21 +1,19 @@
 {-# LANGUAGE DisambiguateRecordFields, FlexibleInstances, MultiParamTypeClasses #-}
-{- |The Data.IP library exports IPv4 and IPv6 address and header structures.
-
-   Patches to add more parsing and pretty printing are welcome.
+{- |The Data.IP library exports IPv4 address and header structures.
 
    FIXME:
    There is currently no support for options fields of the IP header.
  -}
 module Data.IP
-	( IPv4 (..)
-	, IPv4Header (..)
-	, IPv4Flag (..)
+	( IPv4(..)
+	, IPv4Header(..)
+	, IPv4Flag(..)
 	, dummyIPv4Header
 	, module Data.IPv6
 	, ipv4
 	) where
 
-import Control.Monad (sequence)
+import Control.Monad (sequence, when)
 import qualified Data.ByteString.Lazy as B
 import Data.Binary
 import Data.Binary.Put
@@ -52,12 +50,12 @@ fromEnum1 Res  = 1
 -- |This IPv4 header structure lacks support for options.  Ints are used
 -- for most integral data types and the binary instance hands the bit packing.
 --
--- No warning is provided if a field is overflowed!
+-- No warning is provided if a value is trunkated when packed!
 data IPv4Header =
 	IPv4Hdr { hdrLength		:: Int
 		, version		:: Int
 		, tos			:: Int
-		, payloadLength		:: Int
+		, totalLength		:: Int
 		, ipID			:: Int
 		, flags			:: [IPv4Flag]
 		, fragmentOffset	:: Int
@@ -121,7 +119,7 @@ instance L3Header IPv4Header IPv4 CSum where
 		put (dst h)
 		putWord8 0
 		pW8 $ fromIntegral (protocol h)
-		pW16 (payloadLength h))
+		pW16 (totalLength h))
 	computeChecksum h = csum16 (encode (zeroChecksum h))
 
 instance L3Address IPv4 IPv4Header where
@@ -132,6 +130,7 @@ instance L3Address IPv4 IPv4Header where
 instance Pretty IPv4 where
 	pPrint (IPv4 i) = cat . intersperse (char '.') . map (int . fromIntegral) $ (B.unpack i)
 
+-- |Parsec parser for IPv4 strings (ex: "33.44.255.17")
 ipv4 :: GenParser Char st IPv4
 ipv4 = do
 	a <- octet
@@ -143,9 +142,13 @@ ipv4 = do
 	d <- octet
 	return $ IPv4 $ B.pack [a, b, c, d]
 	<?>
-	"Expected IPv4 Address"
+	"IPv4 Address"
 
 octet = do
 	d <- P.many1 P.digit
-	let s = toEnum $ read d
+	let n = read d :: Int
+	when (n > 255) (fail "IPv4 octet invalid")
+	let s = toEnum n
 	return s
+	<?>
+	"IPv4 digits for an octet"
