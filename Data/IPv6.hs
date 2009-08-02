@@ -2,19 +2,20 @@
 
 module Data.IPv6
 	( IPv6 (..)
+	, ipv6
 	) where
 
-import Control.Monad (sequence)
+import Control.Monad (sequence, when)
 import qualified Data.ByteString.Lazy as B
 import Data.Binary
 import Data.Binary.Put
 import Data.Binary.Get
 import Data.Bits
-import Numeric (showHex)
+import Data.List (group)
+import Numeric (showHex, readHex)
 import Text.PrettyPrint
 import Text.PrettyPrint.HughesPJClass
 import Text.ParserCombinators.Parsec as P
-import Data.Maybe (maybeToList)
 
 gW8 = getWord8 >>= return . fromIntegral
 gW16 = getWord16be >>= return . fromIntegral
@@ -68,7 +69,7 @@ instance Binary IPv6Ext where
 	get = return E
 	put _ = return ()
 
--- TODO: Header and Address instanes
+-- TODO: Header and Address instances
 
 instance Pretty IPv6 where
 	pPrint (IPv6 i) = cat . alternate colon . map (pHex 2) $ (B.unpack i)
@@ -84,27 +85,25 @@ alternate f xs = go xs
   go (a:b:c:xs) = a : b : f : go (c:xs)
   go x = x
 
-second :: GenParser Char st [String]
-second = do
-		P.char ':'
-		x <- many1 hexDigit
-		xs <- second
-		return (x : xs)
-	 <|>
-		return []
-
-first :: GenParser Char st [String]
-first = do
-	x <- many1 hexDigit
-	(do	P.char ':'
-		xs <- first
-		return (x:xs)
-	 <|> return [x])
-	<|> return []
-
 ipv6 :: GenParser Char st IPv6
-ipv6 = do error "blah"
+ipv6 = do
+	blocks <- sepBy1 (many hexDigit) (P.char ':')
+	let blocks' = expand blocks
+	    vals = map (fst . head . readHex) blocks'
+	    -- bs = runPut (mapM_ putWord16be vals)
+	    cblks = combine blocks
+	    bs = runPut . mapM_ putWord16be . map (fst . head . readHex) . expand $ cblks
+	when (1 < length (filter (=="") cblks)) (fail "IPv6 Address with only one :: entry")
+	when (B.length bs /= 16) (fail "IPv6 Address of proper length")
+	return (IPv6 bs)
   where
-  replace :: (Eq a) => a -> [a] -> [a] -> [a]
-  replace _ _ [] = []
-  replace n r (x:xs) = if n == x then r ++ xs else x : replace n r xs
+  expand :: [String] -> [String]
+  expand as = replace (replicate (8 - length as + 1) "0") as
+
+replace :: (Eq a) => [[a]] -> [[a]] -> [[a]]
+replace _ [] = []
+replace r ([]:xs) = r ++ xs
+replace r (x:xs)  = x : replace r xs
+
+combine :: (Eq a) => [[a]] -> [[a]]
+combine = concat . map (\x -> if [] `elem` x then [[]] else x) . group

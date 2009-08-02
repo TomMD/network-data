@@ -1,5 +1,5 @@
 name:		network-data
-version:	0.0.2
+version:	0.1.0
 license:	BSD3
 license-file:	LICENSE
 author:		Thomas DuBuisson <thomas.dubuisson@gmail.com>
@@ -20,10 +20,12 @@ Flag small_base
   Description: Choose the split-up base package.
 
 Library
-  if flag(small_base)
-    Build-Depends: base >= 3, bytestring >= 0.9 && < 1.0, binary >= 0.4.0 && < 0.5.0, prettyclass, pretty, parsec
-  else
-    Build-Depends: base >= 3, bytestring >= 0.9 && < 1.0, binary >= 0.4.0 && <0.5.0, prettyclass, pretty, parsec
+  Build-Depends: base >= 3 && < 5,
+                   bytestring >= 0.9 && < 1.0,
+                   binary >= 0.5.0 && < 0.6.0,
+                   prettyclass >= 1.0.0.0 && < 1.1,
+                   pretty >= 1.0.0 && < 1.1.0,
+                   parsec >= 3 && < 4
   hs-source-dirs:
   exposed-modules: Data.IP, Data.IPv6, Data.Header, Data.TCP, Data.UDP, Data.CSum
   ghc-options: 
