@@ -1,4 +1,4 @@
-{-# LANGUAGE BangPatterns, GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE BangPatterns, GeneralizedNewtypeDeriving, DeriveDataTypeable #-}
 module Data.CSum
 	( csum16
 	, CSum
@@ -12,8 +12,9 @@ import Data.Binary
 import Data.Binary.Get
 import Data.Binary.Put
 import Data.Bits
+import Data.Data
 
-newtype CSum = CSum Word16 deriving (Eq, Ord, Show, Bounded, Num)
+newtype CSum = CSum Word16 deriving (Eq, Ord, Show, Read, Bounded, Num, Data, Typeable)
 
 csum16 :: B.ByteString -> CSum
 csum16 b = CSum $ foldl' ( (+) . complement) 0 words

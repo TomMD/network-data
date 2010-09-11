@@ -1,4 +1,4 @@
-{-# LANGUAGE DisambiguateRecordFields #-}
+{-# LANGUAGE DisambiguateRecordFields, DeriveDataTypeable #-}
 
 module Data.IPv6
 	( IPv6 (..)
@@ -11,6 +11,7 @@ import Data.Binary
 import Data.Binary.Put
 import Data.Binary.Get
 import Data.Bits
+import Data.Data
 import Data.List (group)
 import Numeric (showHex, readHex)
 import Text.PrettyPrint
@@ -24,7 +25,7 @@ pW8 = putWord8 . fromIntegral
 pW16 = putWord16be . fromIntegral
 pW32 = putWord32be . fromIntegral
 
-data IPv6 = IPv6 B.ByteString deriving (Eq, Ord, Show, Read)
+data IPv6 = IPv6 B.ByteString deriving (Eq, Ord, Show, Read, Data, Typeable)
 
 instance Binary IPv6 where
 	put (IPv6 b) = putLazyByteString b
@@ -39,7 +40,7 @@ data IPv6Header =
 		, hopLimit		:: Int
 		, source		:: IPv6
 		, destination		:: IPv6
-	} deriving (Eq, Ord, Show)
+	} deriving (Eq, Ord, Show, Read, Data, Typeable)
 
 instance Binary IPv6Header where
   put (IPv6Hdr ver tc fl len nh hop src dst) = do
@@ -63,7 +64,7 @@ instance Binary IPv6Header where
 	dst <- get
 	return $ IPv6Hdr ver tc fl len nh hop src dst
 
-data IPv6Ext = E deriving (Eq, Ord, Show)
+data IPv6Ext = E deriving (Eq, Ord, Show, Read, Data, Typeable)
 
 instance Binary IPv6Ext where
 	get = return E

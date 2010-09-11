@@ -1,4 +1,4 @@
-{-# LANGUAGE DisambiguateRecordFields, FlexibleInstances, MultiParamTypeClasses #-}
+{-# LANGUAGE DisambiguateRecordFields, FlexibleInstances, MultiParamTypeClasses, DeriveDataTypeable #-}
 {- |The Data.IP library exports IPv4 address and header structures.
 
    FIXME:
@@ -8,6 +8,7 @@ module Data.IP
 	( IPv4(..)
 	, IPv4Header(..)
 	, IPv4Flag(..)
+	, IP
 	, dummyIPv4Header
 	, module Data.IPv6
 	, ipv4
@@ -19,6 +20,7 @@ import Data.Binary
 import Data.Binary.Put
 import Data.Binary.Get
 import Data.CSum
+import Data.Data
 import Data.List
 import Data.IPv6
 import Data.Header
@@ -28,16 +30,18 @@ import Text.PrettyPrint.HughesPJClass
 import qualified Text.ParserCombinators.Parsec as P
 import Text.ParserCombinators.Parsec.Prim
 
+type IP = Either IPv4 IPv6
+
 -- |For IPv4 addresses.  The internal representation is a bytestring so
 -- use the pretty print 'ipv4' function as needed (instead of 'show').
-data IPv4 = IPv4 B.ByteString deriving (Eq, Ord, Show, Read)
+data IPv4 = IPv4 B.ByteString deriving (Eq, Ord, Show, Read, Data, Typeable)
 
 instance Binary IPv4 where
 	put (IPv4 b) = putLazyByteString b
 	get = getLazyByteString 4 >>= return . IPv4
 
 -- |Don't fragment, more fragment and reserved flags
-data IPv4Flag = DF | MF | Res deriving (Eq, Ord, Show, Read)
+data IPv4Flag = DF | MF | Res deriving (Eq, Ord, Show, Read, Data, Typeable)
 
 instance Enum [IPv4Flag] where
 	fromEnum xs = foldl' (.|.) 0 $ map fromEnum1 xs
@@ -64,7 +68,7 @@ data IPv4Header =
 		, checksum		:: CSum
 		, source		:: IPv4
 		, destination		:: IPv4
-	} deriving (Eq, Ord, Show)
+	} deriving (Eq, Ord, Show, Read, Data, Typeable)
 
 -- |A dummy header with zeroed fields except version, header length and TTL (255).
 dummyIPv4Header = IPv4Hdr 5 4 0 0 0 [] 0 255 0 0 ipv4zero ipv4zero

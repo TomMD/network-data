@@ -1,4 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving, FlexibleInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, FlexibleInstances, DeriveDataTypeable #-}
 module Data.TCP
 	( TCPPort
 	, TCPHeader (..)
@@ -10,15 +10,16 @@ import Data.Binary.Put
 import Data.CSum
 import Data.Bits
 import Data.List
+import Data.Data
 
-newtype TCPPort = TCPPort Word16 deriving (Eq, Ord, Show, Read, Num, Bounded)
+newtype TCPPort = TCPPort Word16 deriving (Eq, Ord, Show, Read, Num, Bounded, Data, Typeable)
 
 instance Binary TCPPort where
 	put (TCPPort p) = putWord16be p
 	get = getWord16be >>= return . TCPPort
 
-newtype SeqNumber = SN Word32 deriving (Eq, Ord, Show, Read, Num, Bounded)
-newtype AckNumber = AN Word32 deriving (Eq, Ord, Show, Read, Num, Bounded)
+newtype SeqNumber = SN Word32 deriving (Eq, Ord, Show, Read, Num, Bounded, Data, Typeable)
+newtype AckNumber = AN Word32 deriving (Eq, Ord, Show, Read, Num, Bounded, Data, Typeable)
 
 instance Binary SeqNumber where
 	put (SN n) = putWord32be n
@@ -28,7 +29,7 @@ instance Binary AckNumber where
 	put (AN n) = putWord32be n
 	get = getWord32be >>= return . AN
 
-data TCPFlag = FIN | SYN | RST | PSH | ACK | URG | ECE | CWR deriving (Eq, Ord, Show, Enum)
+data TCPFlag = FIN | SYN | RST | PSH | ACK | URG | ECE | CWR deriving (Eq, Ord, Show, Read, Enum, Data, Typeable)
 
 instance Enum [TCPFlag] where
 	fromEnum fs = foldl' (+) 0 $ map (bit . fromEnum) fs
@@ -45,7 +46,7 @@ data TCPHeader =
 		, windowSize	:: Int
 		, checksum	:: CSum
 		, urgentPtr	:: Int
-	} deriving (Eq, Ord, Show)
+	} deriving (Eq, Ord, Show, Read, Data, Typeable)
 
 instance Binary TCPHeader where
 	put (TCPHdr s d seq ack dat res fs w c u) = do
