@@ -2,14 +2,15 @@
 
 module Data.IPv6
 	( IPv6 (..)
+	, IPv6Header
 	, ipv6
 	) where
 
 import Control.Monad (sequence, when)
-import qualified Data.ByteString.Lazy as B
-import Data.Binary
-import Data.Binary.Put
-import Data.Binary.Get
+import qualified Data.ByteString as B
+import Data.Serialize
+import Data.Serialize.Put
+import Data.Serialize.Get
 import Data.Bits
 import Data.Data
 import Data.List (group)
@@ -27,9 +28,9 @@ pW32 = putWord32be . fromIntegral
 
 data IPv6 = IPv6 B.ByteString deriving (Eq, Ord, Show, Read, Data, Typeable)
 
-instance Binary IPv6 where
-	put (IPv6 b) = putLazyByteString b
-	get = getLazyByteString 16 >>= return . IPv6
+instance Serialize IPv6 where
+	put (IPv6 b) = putByteString b
+	get = getByteString 16 >>= return . IPv6
 
 data IPv6Header =
 	IPv6Hdr { version		:: Int
@@ -42,7 +43,7 @@ data IPv6Header =
 		, destination		:: IPv6
 	} deriving (Eq, Ord, Show, Read, Data, Typeable)
 
-instance Binary IPv6Header where
+instance Serialize IPv6Header where
   put (IPv6Hdr ver tc fl len nh hop src dst) = do
 	let verTCFlow = (ver .&. 0xF `shiftL` 28) .|. (tc .&. 0xFF `shiftL` 20) .|. (fl .&. 0xFFFFF)
 	pW32 verTCFlow
@@ -66,7 +67,7 @@ instance Binary IPv6Header where
 
 data IPv6Ext = E deriving (Eq, Ord, Show, Read, Data, Typeable)
 
-instance Binary IPv6Ext where
+instance Serialize IPv6Ext where
 	get = return E
 	put _ = return ()
 

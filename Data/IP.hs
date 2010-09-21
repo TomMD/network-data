@@ -9,16 +9,17 @@ module Data.IP
 	, IPv4Header(..)
 	, IPv4Flag(..)
 	, IP
+	, IPHeader
 	, dummyIPv4Header
 	, module Data.IPv6
 	, ipv4
 	) where
 
-import Control.Monad (sequence, when)
-import qualified Data.ByteString.Lazy as B
-import Data.Binary
-import Data.Binary.Put
-import Data.Binary.Get
+import Control.Monad (sequence, when, liftM)
+import qualified Data.ByteString as B
+import Data.Serialize
+import Data.Serialize.Put
+import Data.Serialize.Get
 import Data.CSum
 import Data.Data
 import Data.List
@@ -32,13 +33,15 @@ import Text.ParserCombinators.Parsec.Prim
 
 type IP = Either IPv4 IPv6
 
+type IPHeader = Either IPv4Header IPv6Header
+
 -- |For IPv4 addresses.  The internal representation is a bytestring so
 -- use the pretty print 'ipv4' function as needed (instead of 'show').
 data IPv4 = IPv4 B.ByteString deriving (Eq, Ord, Show, Read, Data, Typeable)
 
-instance Binary IPv4 where
-	put (IPv4 b) = putLazyByteString b
-	get = getLazyByteString 4 >>= return . IPv4
+instance Serialize IPv4 where
+	put (IPv4 b) = putByteString b
+	get = liftM IPv4 (getByteString 4)
 
 -- |Don't fragment, more fragment and reserved flags
 data IPv4Flag = DF | MF | Res deriving (Eq, Ord, Show, Read, Data, Typeable)
@@ -75,7 +78,7 @@ dummyIPv4Header = IPv4Hdr 5 4 0 0 0 [] 0 255 0 0 ipv4zero ipv4zero
 
 ipv4zero = IPv4 (B.pack [0,0,0,0])
 
-instance Binary IPv4Header where
+instance Serialize IPv4Header where
   put (IPv4Hdr ihl ver tos len id flags off ttl prot csum src dst) = do
 	pW8 $ (ihl .&. 0xF) .|. (ver `shiftL` 4 .&. 0xF0)
 	pW8 tos

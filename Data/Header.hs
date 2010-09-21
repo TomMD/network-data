@@ -4,11 +4,11 @@ module Data.Header
 	, L3Address (..)
 	) where
 
-import Data.Binary (encode, Binary)
-import qualified Data.ByteString.Lazy as B
+import Data.Serialize (encode, Serialize)
+import qualified Data.ByteString as B
 
 -- |A class of network headers that assumes a checksum is present.
-class (Num c,Binary h) => L3Header h a c | h -> a, a -> h, h -> c where
+class (Num c,Serialize h) => L3Header h a c | h -> a, a -> h, h -> c where
 	-- |Returns the checksum from the header
 	getChecksum :: h -> c
 
@@ -41,11 +41,11 @@ class (Num c,Binary h) => L3Header h a c | h -> a, a -> h, h -> c where
 	valid h = computeChecksum h == getChecksum h
 
 -- |A class of network addresses that assumes there is a 'broadcast' concept.
-class (Binary a) => L3Address a h | a -> h, h -> a where
+class (Serialize a) => L3Address a h | a -> h, h -> a where
 	localBroadcast :: a -> a
 	globalBroadcast :: a
 
-class (Binary h, Binary p) => L4Header h p | h -> p where
+class (Serialize h, Serialize p) => L4Header h p | h -> p where
 	fixChecksum :: (L3Header l3 a c) => h -> l3 -> h
 	srcPort	:: h -> p
 	dstPort :: h -> p

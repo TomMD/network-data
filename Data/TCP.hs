@@ -4,28 +4,29 @@ module Data.TCP
 	, TCPHeader (..)
 	) where
 
-import Data.Binary
-import Data.Binary.Get
-import Data.Binary.Put
+import Data.Serialize
+import Data.Serialize.Get
+import Data.Serialize.Put
 import Data.CSum
 import Data.Bits
 import Data.List
 import Data.Data
+import Data.Word
 
 newtype TCPPort = TCPPort Word16 deriving (Eq, Ord, Show, Read, Num, Bounded, Data, Typeable)
 
-instance Binary TCPPort where
+instance Serialize TCPPort where
 	put (TCPPort p) = putWord16be p
 	get = getWord16be >>= return . TCPPort
 
 newtype SeqNumber = SN Word32 deriving (Eq, Ord, Show, Read, Num, Bounded, Data, Typeable)
 newtype AckNumber = AN Word32 deriving (Eq, Ord, Show, Read, Num, Bounded, Data, Typeable)
 
-instance Binary SeqNumber where
+instance Serialize SeqNumber where
 	put (SN n) = putWord32be n
 	get = getWord32be >>= return . SN
 
-instance Binary AckNumber where
+instance Serialize AckNumber where
 	put (AN n) = putWord32be n
 	get = getWord32be >>= return . AN
 
@@ -48,7 +49,7 @@ data TCPHeader =
 		, urgentPtr	:: Int
 	} deriving (Eq, Ord, Show, Read, Data, Typeable)
 
-instance Binary TCPHeader where
+instance Serialize TCPHeader where
 	put (TCPHdr s d seq ack dat res fs w c u) = do
 		put s
 		put d
