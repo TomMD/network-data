@@ -12,7 +12,6 @@ module Data.IP
 	, IPHeader
 	, dummyIPv4Header
 	, module Data.IPv6
-	, ipv4
 	) where
 
 import Control.Monad (sequence, when, liftM)
@@ -28,20 +27,18 @@ import Data.Header
 import Data.Bits
 import Text.PrettyPrint
 import Text.PrettyPrint.HughesPJClass
-import qualified Text.ParserCombinators.Parsec as P
-import Text.ParserCombinators.Parsec.Prim
+import Data.Word
 
 type IP = Either IPv4 IPv6
 
 type IPHeader = Either IPv4Header IPv6Header
 
--- |For IPv4 addresses.  The internal representation is a bytestring so
--- use the pretty print 'ipv4' function as needed (instead of 'show').
-data IPv4 = IPv4 B.ByteString deriving (Eq, Ord, Show, Read, Data, Typeable)
+-- |For IPv4 addresses.
+data IPv4 = IPv4 Word32 deriving (Eq, Ord, Show, Read, Data, Typeable)
 
 instance Serialize IPv4 where
-	put (IPv4 b) = putByteString b
-	get = liftM IPv4 (getByteString 4)
+	put (IPv4 b) = putWord32be b
+	get = liftM IPv4 getWord32be
 
 -- |Don't fragment, more fragment and reserved flags
 data IPv4Flag = DF | MF | Res deriving (Eq, Ord, Show, Read, Data, Typeable)
@@ -76,7 +73,7 @@ data IPv4Header =
 -- |A dummy header with zeroed fields except version, header length and TTL (255).
 dummyIPv4Header = IPv4Hdr 5 4 0 0 0 [] 0 255 0 0 ipv4zero ipv4zero
 
-ipv4zero = IPv4 (B.pack [0,0,0,0])
+ipv4zero = IPv4 0
 
 instance Serialize IPv4Header where
   put (IPv4Hdr ihl ver tos len id flags off ttl prot csum src dst) = do
@@ -130,32 +127,9 @@ instance L3Header IPv4Header IPv4 CSum where
 	computeChecksum h = csum16 (encode (zeroChecksum h))
 
 instance L3Address IPv4 IPv4Header where
-	localBroadcast (IPv4 a) = IPv4 $ B.concat [B.pack [0xFF], B.drop 1 a]
-	globalBroadcast = IPv4 $ B.replicate 4 0xFF
+	localBroadcast (IPv4 a) = IPv4 (0xFFFFFF00 .|. (0x000000FF .&. a))
+	globalBroadcast = IPv4 0xFFFFFFFF
 
 -- Pretty Printing and parsing instances
 instance Pretty IPv4 where
-	pPrint (IPv4 i) = cat . intersperse (char '.') . map (int . fromIntegral) $ (B.unpack i)
-
--- |Parsec parser for IPv4 strings (ex: "33.44.255.17")
-ipv4 :: GenParser Char st IPv4
-ipv4 = do
-	a <- octet
-	P.char '.'
-	b <- octet
-	P.char '.'
-	c <- octet
-	P.char '.'
-	d <- octet
-	return $ IPv4 $ B.pack [a, b, c, d]
-	<?>
-	"IPv4 Address"
-
-octet = do
-	d <- P.many1 P.digit
-	let n = read d :: Int
-	when (n > 255) (fail "IPv4 octet invalid")
-	let s = toEnum n
-	return s
-	<?>
-	"IPv4 digits for an octet"
+	pPrint (IPv4 i) = text . concat . intersperse "." . map show $ unfoldr (\(i,v) -> if i /= 0 then Just (v .&. 0xFF, (i-1, v `shiftR` 8)) else Nothing) (4,i)
