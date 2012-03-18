@@ -8,7 +8,7 @@ import Data.Serialize (encode, Serialize)
 import qualified Data.ByteString as B
 
 -- |A class of network headers that assumes a checksum is present.
-class (Num c,Serialize h) => L3Header h a c | h -> a, a -> h, h -> c where
+class (Eq c, Num c,Serialize h) => L3Header h a c | h -> a, a -> h, h -> c where
 	-- |Returns the checksum from the header
 	getChecksum :: h -> c
 

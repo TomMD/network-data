@@ -66,8 +66,8 @@ instance Serialize IPv6Header where
 data IPv6Ext = IPv6Ext Int deriving (Eq, Ord, Show, Read, Data, Typeable)
 
 instance Serialize IPv6Ext where
-	get = liftM IPv6Ext getWord8
-	put (IPv6Ext x) = putWord8 x
+	get = fmap (IPv6Ext . fromIntegral) getWord8
+	put (IPv6Ext x) = putWord8 (fromIntegral x)
 
 -- TODO: Header and Address instances
 
