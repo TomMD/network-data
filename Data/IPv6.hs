@@ -63,11 +63,11 @@ instance Serialize IPv6Header where
 	dst <- get
 	return $ IPv6Hdr ver tc fl len nh hop src dst
 
-data IPv6Ext = E deriving (Eq, Ord, Show, Read, Data, Typeable)
+data IPv6Ext = IPv6Ext Int deriving (Eq, Ord, Show, Read, Data, Typeable)
 
 instance Serialize IPv6Ext where
-	get = return E
-	put _ = return ()
+	get = liftM IPv6Ext getWord8
+	put (IPv6Ext x) = putWord8 x
 
 -- TODO: Header and Address instances
 

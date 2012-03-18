@@ -1,5 +1,5 @@
 name:		network-data
-version:	0.2.0
+version:	0.2.1
 license:	BSD3
 license-file:	LICENSE
 author:		Thomas DuBuisson <thomas.dubuisson@gmail.com>
@@ -23,8 +23,8 @@ Library
   Build-Depends: base >= 3 && < 5,
                    bytestring >= 0.9 && < 1.0,
                    cereal >= 0.2 && < 0.4,
-                   prettyclass >= 1.0.0.0 && < 1.1,
-                   pretty >= 1.0.0 && < 1.1.0
+                   prettyclass >= 1.0 && < 1.1,
+                   pretty >= 1.0 && < 1.2
   hs-source-dirs:
   exposed-modules: Data.IP, Data.IPv6, Data.Header, Data.TCP, Data.UDP, Data.CSum
   ghc-options: 
