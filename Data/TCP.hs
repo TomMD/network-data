@@ -1,6 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving, FlexibleInstances, DeriveDataTypeable #-}
 module Data.TCP
-	( TCPPort
+	( TCPPort (..)
 	, TCPHeader (..)
 	) where
 
@@ -56,8 +56,8 @@ instance Serialize TCPHeader where
 		put seq
 		put ack
 		let datRes = ((dat .&. 0xF) `shiftL` 4) .|. (res .&. 0xF)
-		put datRes
-		put (fromEnum fs)
+		putWord8 (fromIntegral datRes)
+		putWord8 (fromIntegral $ fromEnum fs)
 		putWord16be (fromIntegral w .&. 0xFFFF)
 		put c
 		putWord16be (fromIntegral u .&. 0xFFFF)
@@ -66,10 +66,10 @@ instance Serialize TCPHeader where
 		d <- get
 		seq <- get
 		ack <- get
-		datRes <- get
+		datRes <- fmap fromIntegral getWord8
 		let dat = (datRes `shiftR` 4) .&. 0xF
 		    res = datRes .&. 0xF
-		fs <- get >>= return . toEnum
+		fs <- fmap (toEnum . fromIntegral) getWord8
 		w <- getWord16be >>= return . fromIntegral
 		c <- get
 		u <- getWord16be >>= return . fromIntegral
