@@ -49,10 +49,10 @@ data EthernetHeader =
 instance Serialize EthernetHeader where
   put (EthernetHdr dst src ty) = do put dst
                                     put src
-                                    pW16 ty
+                                    putWord16be ty
   get = do dst <- get
            src <- get
-           ty  <- getWord16
+           ty  <- getWord16be
            return $ EthernetHdr dst src ty
 
 -- Pretty Printing and parsing instances
