@@ -1,9 +1,9 @@
 {-# LANGUAGE BangPatterns, GeneralizedNewtypeDeriving, DeriveDataTypeable #-}
 module Data.CSum
-	( csum16
-	, CSum
-	, zeroCSum
-	) where
+        ( csum16
+        , CSum
+        , zeroCSum
+        ) where
 
 import qualified Data.ByteString as B
 import Data.List (foldl')
@@ -25,7 +25,7 @@ csum16 b = CSum $ foldl' ( (+) . complement) 0 words
 {-# INLINE csum16 #-}
 
 instance Serialize CSum where
-	put (CSum w) = putWord16be w
-	get = getWord16be >>= return . CSum
+        put (CSum w) = putWord16be w
+        get = getWord16be >>= return . CSum
 
 zeroCSum = CSum 0

@@ -1,9 +1,9 @@
 {-# LANGUAGE DisambiguateRecordFields, DeriveDataTypeable #-}
 
 module Data.IPv6
-	( IPv6 (..)
-	, IPv6Header
-	) where
+        ( IPv6 (..)
+        , IPv6Header
+        ) where
 
 import Control.Monad (sequence, when)
 import qualified Data.ByteString as B
@@ -27,52 +27,52 @@ pW32 = putWord32be . fromIntegral
 data IPv6 = IPv6 B.ByteString deriving (Eq, Ord, Show, Read, Data, Typeable)
 
 instance Serialize IPv6 where
-	put (IPv6 b) = putByteString b
-	get = getByteString 16 >>= return . IPv6
+        put (IPv6 b) = putByteString b
+        get = getByteString 16 >>= return . IPv6
 
 data IPv6Header =
-	IPv6Hdr { version		:: Int
-		, trafficClass		:: Int
-		, flowLabel		:: Int
-		, payloadLength		:: Int
-		, nextHeader		:: IPv6Ext
-		, hopLimit		:: Int
-		, source		:: IPv6
-		, destination		:: IPv6
-	} deriving (Eq, Ord, Show, Read, Data, Typeable)
+        IPv6Hdr { version               :: Int
+                , trafficClass          :: Int
+                , flowLabel             :: Int
+                , payloadLength         :: Int
+                , nextHeader            :: IPv6Ext
+                , hopLimit              :: Int
+                , source                :: IPv6
+                , destination           :: IPv6
+        } deriving (Eq, Ord, Show, Read, Data, Typeable)
 
 instance Serialize IPv6Header where
   put (IPv6Hdr ver tc fl len nh hop src dst) = do
-	let verTCFlow = (ver .&. 0xF `shiftL` 28) .|. (tc .&. 0xFF `shiftL` 20) .|. (fl .&. 0xFFFFF)
-	pW32 verTCFlow
-	pW16 len
-	put nh
-	pW8 hop
-	put src
-	put dst
+        let verTCFlow = (ver .&. 0xF `shiftL` 28) .|. (tc .&. 0xFF `shiftL` 20) .|. (fl .&. 0xFFFFF)
+        pW32 verTCFlow
+        pW16 len
+        put nh
+        pW8 hop
+        put src
+        put dst
 
   get = do
-	verTCFlow <- gW32
-	let ver = (verTCFlow `shiftR` 28) .&. 0xF
-	    tc  = (verTCFlow `shiftR` 20) .&. 0xFF
-	    fl  = verTCFlow .&. 0xFFFFF
-	len <- gW16
-	nh  <- get
-	hop <- gW8
-	src <- get
-	dst <- get
-	return $ IPv6Hdr ver tc fl len nh hop src dst
+        verTCFlow <- gW32
+        let ver = (verTCFlow `shiftR` 28) .&. 0xF
+            tc  = (verTCFlow `shiftR` 20) .&. 0xFF
+            fl  = verTCFlow .&. 0xFFFFF
+        len <- gW16
+        nh  <- get
+        hop <- gW8
+        src <- get
+        dst <- get
+        return $ IPv6Hdr ver tc fl len nh hop src dst
 
 data IPv6Ext = IPv6Ext Int deriving (Eq, Ord, Show, Read, Data, Typeable)
 
 instance Serialize IPv6Ext where
-	get = fmap (IPv6Ext . fromIntegral) getWord8
-	put (IPv6Ext x) = putWord8 (fromIntegral x)
+        get = fmap (IPv6Ext . fromIntegral) getWord8
+        put (IPv6Ext x) = putWord8 (fromIntegral x)
 
 -- TODO: Header and Address instances
 
 instance Pretty IPv6 where
-	pPrint (IPv6 i) = cat . alternate colon . map (pHex 2) $ (B.unpack i)
+        pPrint (IPv6 i) = cat . alternate colon . map (pHex 2) $ (B.unpack i)
 
 -- Until 'hex' is part of the pretty printer
 pHex nr n = text $ pad nr $ showHex n ""
