@@ -5,10 +5,9 @@ license-file:   LICENSE
 author:         Thomas DuBuisson <thomas.dubuisson@gmail.com>
 maintainer:     Thomas DuBuisson
 synopsis:       Library for network data structures (ex: ip/udp/tcp headers and helper functions)
-description:    This library includes definitions for common headers such as IPv4, IPv6, UDP, TCP, etc.
-                Data type/functions for full packets, better typeclass setup, and a more agreeable interface
-                with a berkeley sockets like API should be coming soon.  Also, test cases - this code is
-                untested as of yet.
+description:    This library includes definitions for common headers such as
+                IPv4, IPv6, UDP, TCP, etc. This code is untested for any serious
+                work - use at your own risk.
 category:       Data, Network
 stability:      stable
 build-type:     Simple
