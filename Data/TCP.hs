@@ -2,6 +2,7 @@
 module Data.TCP
         ( TCPPort (..)
         , TCPHeader (..)
+        , TCPFlag (..)
         ) where
 
 import Data.Serialize
