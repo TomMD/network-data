@@ -8,6 +8,7 @@ module Data.Ethernet
         ) where
 
 import Control.Monad (sequence, when, liftM)
+import Control.Applicative ((<$>), (<*>))
 import qualified Data.ByteString as B
 import Data.Serialize
 import Data.Serialize.Put
@@ -43,17 +44,25 @@ instance Serialize Ethernet where
 data EthernetHeader =
     EthernetHdr { destination  :: !Ethernet,
                   source       :: !Ethernet,
+                  vlanTag      :: !(Maybe Word16),
                   etherType    :: !Word16
                 } deriving (Eq, Ord, Show, Read, Data, Typeable)
 
+-- Two bytes of 'ethertype' if 802.1Q  tag is present.
+vlanEthertype :: Word16
+vlanEthertype = 0x8100
+
 instance Serialize EthernetHeader where
-  put (EthernetHdr dst src ty) = do put dst
-                                    put src
-                                    putWord16be ty
+  put (EthernetHdr dst src vt ty) = do put dst
+                                       put src
+                                       maybe (return ()) put vt
+                                       putWord16be ty
   get = do dst <- get
            src <- get
            ty  <- getWord16be
-           return $ EthernetHdr dst src ty
+           if ty == vlanEthertype
+              then EthernetHdr dst src <$> get <*> get
+              else return $ EthernetHdr dst src Nothing ty
 
 -- Pretty Printing and parsing instances
 instance Pretty Ethernet where
