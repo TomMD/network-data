@@ -4,7 +4,7 @@ license:        BSD3
 license-file:   LICENSE
 author:         Thomas DuBuisson <thomas.dubuisson@gmail.com>
 maintainer:     Thomas DuBuisson
-synopsis:       Library for network data structures (ex: ethernet/ip/udp/tcp headers and helper functions)
+synopsis:       Library for network data structures and their serialization.
 description:    This library includes definitions for common headers such as
                 Ethernet, IPv4, IPv6, UDP, TCP, etc. This code is untested for any serious
                 work - use at your own risk.

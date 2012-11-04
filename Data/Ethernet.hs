@@ -3,8 +3,11 @@
 {- |The Data.Ethernet module exports Ethernet header structures.
  -}
 module Data.Ethernet
-        ( Ethernet(..)
+        ( -- * Types
+          Ethernet(..)
         , EthernetHeader(..)
+        -- * Constants
+        , vlanEthertype
         ) where
 
 import Control.Monad (sequence, when, liftM)
@@ -48,7 +51,7 @@ data EthernetHeader =
                   etherType    :: !Word16
                 } deriving (Eq, Ord, Show, Read, Data, Typeable)
 
--- Two bytes of 'ethertype' if 802.1Q  tag is present.
+-- |Two bytes of 'ethertype' if 802.1Q  tag is present.
 vlanEthertype :: Word16
 vlanEthertype = 0x8100
 
