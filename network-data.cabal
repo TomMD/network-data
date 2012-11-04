@@ -1,5 +1,5 @@
 name:           network-data
-version:        0.4
+version:        0.5
 license:        BSD3
 license-file:   LICENSE
 author:         Thomas DuBuisson <thomas.dubuisson@gmail.com>
@@ -27,3 +27,7 @@ Library
   hs-source-dirs:
   exposed-modules: Data.Ethernet, Data.IP, Data.IPv6, Data.Header, Data.TCP, Data.UDP, Data.CSum
   ghc-options: 
+
+source-repository head
+  type:     git
+  location: https://github.com/TomMD/network-data.git
