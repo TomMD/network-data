@@ -47,9 +47,9 @@ instance Enum [IPv4Flag] where
         fromEnum xs = foldl' (.|.) 0 $ map fromEnum1 xs
         toEnum f = map snd $ filter fst [(testBit f 0, Res), (testBit f 1, MF), (testBit f 2, DF)]
 
-fromEnum1 DF   = 4
-fromEnum1 MF   = 2
-fromEnum1 Res  = 1
+fromEnum1 MF   = 1
+fromEnum1 DF   = 2
+fromEnum1 Res  = 4
 
 -- |This IPv4 header structure lacks support for options.  Ints are used
 -- for most integral data types and the binary instance hands the bit packing.
