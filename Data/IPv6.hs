@@ -2,7 +2,7 @@
 
 module Data.IPv6
         ( IPv6 (..)
-        , IPv6Header
+        , IPv6Header (..)
         ) where
 
 import Control.Monad (sequence, when)
