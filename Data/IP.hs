@@ -11,7 +11,6 @@ module Data.IP
         , IP
         , IPHeader
         , dummyIPv4Header
-        , module Data.IPv6
         ) where
 
 import Control.Monad (sequence, when, liftM)
@@ -116,8 +115,8 @@ pW32 = putWord32be . fromIntegral
 instance L3Header IPv4Header IPv4 CSum where
         getChecksum = checksum
         setChecksum h c = h { checksum = c }
-        src = source
-        dst = destination
+        src = Data.IP.source
+        dst = Data.IP.destination
         pseudoHeader h = runPut (do
                 put (src h)
                 put (dst h)
