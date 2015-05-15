@@ -71,7 +71,7 @@ instance Serialize EthernetHeader where
 instance Pretty Ethernet where
     pPrint (Ethernet o0 o1 o2 o3 o4 o5)
         = text
-        . concat 
-        . intersperse "::" 
-        . map (flip showHex "") 
+        . concat
+        . intersperse "::"
+        . map (flip showHex "")
         $ [o0, o1, o2, o3, o4, o5]
