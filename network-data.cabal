@@ -20,13 +20,12 @@ Flag small_base
 
 Library
   Build-Depends: base >= 3 && < 5,
-                   bytestring >= 0.9,
-                   cereal >= 0.2,
-                   prettyclass >= 1.0,
-                   pretty >= 1.0
+                 bytestring >= 0.9,
+                 cereal >= 0.2,
+                 pretty >= 1.0
   hs-source-dirs:
   exposed-modules: Data.Ethernet, Data.IP, Data.IPv6, Data.Header, Data.TCP, Data.UDP, Data.CSum
-  ghc-options: 
+  ghc-options:
 
 source-repository head
   type:     git
