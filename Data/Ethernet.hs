@@ -64,7 +64,7 @@ instance Serialize EthernetHeader where
            src <- get
            ty  <- getWord16be
            if ty == vlanEthertype
-              then EthernetHdr dst src <$> get <*> get
+              then EthernetHdr dst src <$> (Just <$> get) <*> get
               else return $ EthernetHdr dst src Nothing ty
 
 -- Pretty Printing and parsing instances
